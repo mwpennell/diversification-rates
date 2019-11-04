@@ -9,5 +9,5 @@ for (i in 1:nrow(tree_info)){
   clade <- tree_info[i, "taxon"]
   tree <- castor::read_tree(paste0("data/trees/", id, ".tre"))
   res  <- fit_pdr_variable_grid(tree, rho=rho)
-  saveRDS(res, paste0("output/pdr_boot", clade, ".rds"))
+  saveRDS(res, paste0("output/pdr_boot/", clade, ".rds"))
 }
