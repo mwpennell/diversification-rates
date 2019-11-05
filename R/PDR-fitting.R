@@ -49,14 +49,14 @@ fit_pdr_variable_grid <- function(tree, rho=1, starting_grid_size=3){
                                 Nbootstraps = 100, Ntrials_per_bootstrap = 1,
                                 max_model_runtime = max(0.5,length(tree$tip.label)/ 5e4))
   ## fill out the curve
-  Ntip <- Ntip(tree)
-  pdr_mle <- simulate_deterministic_hbd(LTT0=Ntip, oldest_age=max_age,
+  ntip <- length(tree$tip.label)
+  pdr_mle <- simulate_deterministic_hbd(LTT0=ntip, oldest_age=max_age,
                                         age_grid = f_boot$age_grid, lambda0=f_boot$fitted_rholambda0/rho,
                                         mu=0, PDR=f_boot$fitted_PDR, splines_degree = 1)
-  pdr_lower <- simulate_deterministic_hbd(LTT0=Ntip, oldest_age=max_age,
+  pdr_lower <- simulate_deterministic_hbd(LTT0=ntip, oldest_age=max_age,
                                           age_grid = f_boot$age_grid, lambda0=f_boot$CI95lower$rholambda0/rho,
                                           mu=0, PDR=f_boot$CI95lower$PDR, splines_degree = 1)
-  pdr_upper <- simulate_deterministic_hbd(LTT0=Ntip, oldest_age=max_age,
+  pdr_upper <- simulate_deterministic_hbd(LTT0=ntip, oldest_age=max_age,
                                           age_grid = f_boot$age_grid, lambda0=f_boot$CI95upper$rholambda0/rho,
                                           mu=0, PDR=f_boot$CI95upper$PDR, splines_degree = 1)
   list(fit = f_boot, pdr_mle = pdr_mle, pdr_lower = pdr_lower, pdr_upper = pdr_upper)
