@@ -1,6 +1,7 @@
 ## Figures for MS and suppmat
 library(ggplot2)
 library(cowplot)
+library(castor)
 
 d <- "output/pdr_boot/"
 pdr_data <- vector(mode = "list", length = length(dir(d)))
@@ -100,3 +101,38 @@ ggplot(df, aes(x=age, y=rp0)) +
     theme_cowplot() + stat_smooth(method="lm", se=FALSE, colour="#2E3C61") +
     scale_y_log10() + scale_x_log10()
 ggsave("figs/clade_age/rp0_cladeage_log.pdf")
+
+
+## Plot 6: LTT vs. dLTT plots
+ltt_dltt <- function(tree, fit, cols=c("#5475BA", "#2E3C61")){
+  tree_age <- get_tree_span(tree)$max_distance
+  ltt <- castor::count_lineages_through_time(tree, times=seq(0, (tree_age - 0.1), length.out = 100))
+  dltt <- fit$pdr_mle
+  min_one_lineage <- which(dltt$LTT >= 1)
+  dlineages <- dltt$LTT[min_one_lineage]
+  dages <- tree_age - dltt$ages[min_one_lineage]
+  ltt_comp <- data.frame(lineages=c(ltt$lineages, dlineages),
+                         ages=c(ltt$times, dages),
+                         Type=c(rep("LTT", length(ltt$lineages)),
+                                rep("dLTT", length(dlineages))))
+  ltt_comp$ages <- max(ltt_comp$ages) - ltt_comp$ages
+  
+  ggplot(ltt_comp, aes(x=ages, y=lineages, colour=Type)) + 
+    stat_smooth(se=FALSE) + scale_y_log10() + theme_cowplot() +
+    scale_colour_manual(values = cols) 
+    ##theme(legend.position = "none", axis.title = element_blank(),
+    ##      axis.text = element_text(size=9))
+}
+
+tree_info <- read.csv("data/tree_descriptions.csv")
+
+for (i in 1:nrow(tree_info)){
+  id <- as.character(tree_info[i,"tree_name"])
+  rho <- as.numeric(tree_info[i,"rho"])
+  clade <- as.character(tree_info[i, "taxon"])
+  tree <- castor::read_tree(file=paste0("data/trees/", id, ".tre"))
+  fit <- pdr_data[[clade]]
+  ltt_dltt(tree, fit)
+  ggsave(paste0("figs/ltt/ltt-dltt-", clade, ".pdf"))
+}
+
