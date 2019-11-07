@@ -62,3 +62,4 @@ fit_pdr_variable_grid <- function(tree, rho=1, starting_grid_size=4, ntry_fit=4,
                                           mu=0, PDR=f_boot$CI95upper$PDR, splines_degree = 1)
   list(fit = f_boot, pdr_mle = pdr_mle, pdr_lower = pdr_lower, pdr_upper = pdr_upper)
 }
+

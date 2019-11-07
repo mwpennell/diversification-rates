@@ -69,7 +69,7 @@ lambda0_df <- lambda0_df[-which(lambda0_df$clade == "Bacteria"), ]
 ggplot(lambda0_df, aes(x=age, y=lambda0)) +  
   geom_errorbar(aes(ymin=lambda0-se, ymax=lambda0+se)) +
   geom_point(colour="#5475BA", size=3, alpha=0.7) + 
-  ylab(expression(lambda[p](0))) + xlab("Age of clade (my)") + 
+  ylab(expression(lambda(0))) + xlab("Age of clade (my)") + 
   theme_cowplot() #+ stat_smooth(se=FALSE, colour="#2E3C61")
 ggsave("figs/clade_age/lambda0_cladeage.pdf")
 
