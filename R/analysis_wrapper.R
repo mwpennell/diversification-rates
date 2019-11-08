@@ -9,7 +9,10 @@ trim <- c(0, 1, 2, 5)
 ## definte variables for fitting
 ntry_fit <- 5
 nthreads <- 1
-
+nboot <- 100
+ntry_boot <- 1
+ntry_search <- 5
+sgs <- 4 ## starting grid size
  
 for (i in 1:nrow(tree_info)){
   id <- as.character(tree_info[i,"tree_name"])
@@ -21,9 +24,9 @@ for (i in 1:nrow(tree_info)){
   for (j in 1:length(trim)){
     ## fit time variable rates - calling funtion from PDR-fitting
     ## Compute bootstraps
-    res  <- fit_pdr_variable_grid(tree, rho=rho, starting_grid_size=4, age0=trim[j],
-                                  ntry_fit=ntry_fit, ntry_search=5,
-                                  nboot=100, ntry_boot=1, nthreads=nthreads)
+    res  <- fit_pdr_variable_grid(tree, rho=rho, starting_grid_size=sgs, age0=trim[j],
+                                  ntry_fit=ntry_fit, ntry_search=ntry_search,
+                                  nboot=nboot, ntry_boot=ntry_boot, nthreads=nthreads)
     saveRDS(res, paste0("output/pdr_boot/", trim[j], "_", clade, ".rds"))
     
     ## fit single rate models
