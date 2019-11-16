@@ -1,10 +1,17 @@
 source("R/PDR-fitting.R")
 
+## set up directories for putting results
+## for "pdr_boot"
+ifelse(!dir.exists(file.path("output", "pdr_boot")), dir.create(file.path("output", "pdr_boot")), FALSE)
+## for "srm"
+ifelse(!dir.exists(file.path("output", "srm")), dir.create(file.path("output", "srm")), FALSE)
+
+
 ## read in data description
 tree_info <- read.csv("data/tree_descriptions.csv")
 
 ## define ages to trim tree
-trim <- c(0, 1, 2, 5)
+trim <- c(0, 2)
 
 ## definte variables for fitting
 ntry_fit <- 5
@@ -24,15 +31,29 @@ for (i in 1:nrow(tree_info)){
   for (j in 1:length(trim)){
     ## fit time variable rates - calling funtion from PDR-fitting
     ## Compute bootstraps
-    res  <- fit_pdr_variable_grid(tree, rho=rho, starting_grid_size=sgs, age0=trim[j],
+    vrm  <- fit_pdr_variable_grid(tree, rho=rho, starting_grid_size=sgs, age0=trim[j],
                                   ntry_fit=ntry_fit, ntry_search=ntry_search,
                                   nboot=nboot, ntry_boot=ntry_boot, nthreads=nthreads)
-    saveRDS(res, paste0("output/pdr_boot/", trim[j], "_", clade, ".rds"))
+    saveRDS(vrm, paste0("output/pdr_boot/", trim[j], "_", clade, ".rds"))
     
     ## fit single rate models
-    srm  <- fit_hbd_pdr_on_grid(tree, Ntrials = ntry_fit, age_grid=NULL, age0=trim[j],
-                                min_PDR = -5, max_PDR=5, Nthreads = nthreads, condition = "crown",
-                                max_model_runtime = max(0.5,length(tree$tip.label)/ 5e4))
+    ## estimate lambda0
+    lambda0 <- vrm$fit$fitted_rholambda0/rho
+    max_age <- get_tree_span(tree)$max_distance
+    srm <- fit_hbd_model_on_grid(tree,
+                                  oldest_age = max_age,
+                                  age0=trim[j],
+                                  age_grid = 1,
+                                  min_mu = 0,
+                                  max_mu = 5,
+                                  guess_mu= lambda0/2,
+                                  fixed_lambda = lambda0,
+                                  fixed_rho = rho,
+                                  condition="crown",
+                                  Ntrials=ntry_fit, Nthreads=nthreads,
+                                  max_model_runtime = max(0.5,length(tree$tip.label)/ 5e4),
+                                  control=list(eval.max=500, iter.max=200, rel.tol=1e-6))
+    
     saveRDS(srm, paste0("output/srm/", trim[j], "_", clade, ".rds"))
   }
 
