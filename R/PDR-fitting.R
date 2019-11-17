@@ -15,16 +15,14 @@ fit_pdr_variable_grid <- function(tree, rho=1, starting_grid_size=4, age0=0,
   age_grid_i[1] <- 0
   f_i <- fit_hbd_pdr_on_grid(tree, age_grid = age_grid_i, age0=age0, Ntrials = ntry_search,
                              min_PDR = -5, max_PDR=5, Nthreads = nthreads, condition = "crown",
-                             max_model_runtime = max(0.5,length(tree$tip.label)/ 5e4),
-                             control=list(eval.max=500, iter.max=200, rel.tol=1e-6))
+                             max_model_runtime = max(0.5,length(tree$tip.label)/ 5e4))
   age_grid_j <- castor:::get_inhomogeneous_grid_1D(Xstart=0.000001, Xend=max_age, 
                                                    Ngrid=n_grid+1, densityX=rev(max_age-LTT$times),
                                                    densityY=sqrt(rev(LTT$lineages)))
   age_grid_j[1] <- 0
   f_j <- fit_hbd_pdr_on_grid(tree, age_grid = age_grid_j, age0=age0, Ntrials = ntry_search,
                              min_PDR = -5, max_PDR=5, Nthreads = nthreads, condition = "crown",
-                             max_model_runtime = max(0.5,length(tree$tip.label)/ 5e4),
-                             control=list(eval.max=500, iter.max=200, rel.tol=1e-6))
+                             max_model_runtime = max(0.5,length(tree$tip.label)/ 5e4))
   aic_i <- f_i$AIC
   aic_j <- f_j$AIC
   
@@ -38,8 +36,7 @@ fit_pdr_variable_grid <- function(tree, rho=1, starting_grid_size=4, age0=0,
     age_grid_j[1] <- 0
     f_j <- fit_hbd_pdr_on_grid(tree, age_grid = age_grid_j, age0=age0, Ntrials = ntry_search,
                                min_PDR = -5, max_PDR=5, Nthreads = nthreads, condition = "crown",
-                               max_model_runtime = max(0.5,length(tree$tip.label)/ 5e4),
-                               control=list(eval.max=500, iter.max=200, rel.tol=1e-6))
+                               max_model_runtime = max(0.5,length(tree$tip.label)/ 5e4))
     aic_j <- f_j$AIC
   }
   ## use the estimated age grid 
@@ -52,8 +49,7 @@ fit_pdr_variable_grid <- function(tree, rho=1, starting_grid_size=4, age0=0,
   f_boot <- fit_hbd_pdr_on_grid(tree, age_grid = age_grid, age0=age0, Ntrials = ntry_fit,
                                 min_PDR = -5, max_PDR=5, Nthreads = nthreads, condition = "crown",
                                 Nbootstraps = nboot, Ntrials_per_bootstrap = ntry_boot,
-                                max_model_runtime = max(0.5,length(tree$tip.label)/ 5e4),
-                                control=list(eval.max=500, iter.max=200, rel.tol=1e-6))
+                                max_model_runtime = max(0.5,length(tree$tip.label)/ 5e4))
   ## fill out the curve
   ntip <- length(tree$tip.label)
   pdr_mle <- simulate_deterministic_hbd(LTT0=ntip, oldest_age=max_age, 

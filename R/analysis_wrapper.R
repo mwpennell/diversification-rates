@@ -51,8 +51,7 @@ for (i in 1:nrow(tree_info)){
                                   fixed_rho = rho,
                                   condition="crown",
                                   Ntrials=ntry_fit, Nthreads=nthreads,
-                                  max_model_runtime = max(0.5,length(tree$tip.label)/ 5e4),
-                                  control=list(eval.max=500, iter.max=200, rel.tol=1e-6))
+                                  max_model_runtime = max(0.5,length(tree$tip.label)/ 5e4))
     
     saveRDS(srm, paste0("output/srm/", trim[j], "_", clade, ".rds"))
   }
