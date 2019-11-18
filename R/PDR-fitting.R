@@ -5,7 +5,8 @@ library(castor)
 
 fit_pdr_variable_grid <- function(tree, rho=1, starting_grid_size=4, age0=0,
                                   ntry_fit=4, ntry_search=1,
-                                  nboot=100, ntry_boot=1, nthreads=1){
+                                  nboot=100, ntry_boot=1, nthreads=1,
+                                  to_return="sim"){
   max_age <- get_tree_span(tree)$max_distance
   n_grid <- starting_grid_size
   LTT <- count_lineages_through_time(tree, Ntimes=1000)
@@ -45,22 +46,42 @@ fit_pdr_variable_grid <- function(tree, rho=1, starting_grid_size=4, age0=0,
                                                  densityY=sqrt(rev(LTT$lineages)))
   age_grid[1] <- 0
   
-  ## bootstrap the data
-  f_boot <- fit_hbd_pdr_on_grid(tree, age_grid = age_grid, age0=age0, Ntrials = ntry_fit,
-                                min_PDR = -5, max_PDR=5, Nthreads = nthreads, condition = "crown",
-                                Nbootstraps = nboot, Ntrials_per_bootstrap = ntry_boot,
-                                max_model_runtime = max(0.5,length(tree$tip.label)/ 5e4))
-  ## fill out the curve
-  ntip <- length(tree$tip.label)
-  pdr_mle <- simulate_deterministic_hbd(LTT0=ntip, oldest_age=max_age, 
-                                        age_grid = f_boot$age_grid, lambda0=f_boot$fitted_rholambda0/rho,
-                                        mu=0, PDR=f_boot$fitted_PDR, splines_degree = 1)
-  pdr_lower <- simulate_deterministic_hbd(LTT0=ntip, oldest_age=max_age,
-                                          age_grid = f_boot$age_grid, lambda0=f_boot$CI95lower$rholambda0/rho,
-                                          mu=0, PDR=f_boot$CI95lower$PDR, splines_degree = 1)
-  pdr_upper <- simulate_deterministic_hbd(LTT0=ntip, oldest_age=max_age,
-                                          age_grid = f_boot$age_grid, lambda0=f_boot$CI95upper$rholambda0/rho,
-                                          mu=0, PDR=f_boot$CI95upper$PDR, splines_degree = 1)
-  list(fit = f_boot, pdr_mle = pdr_mle, pdr_lower = pdr_lower, pdr_upper = pdr_upper)
+  if (is.null(nboot)) { ## if nboot is null just return the model fitted
+    f <- fit_hbd_pdr_on_grid(tree, age_grid = age_grid, age0=age0, Ntrials = ntry_fit,
+                             min_PDR = -5, max_PDR=5, Nthreads = nthreads, condition = "crown",
+                             Nbootstraps = 0, Ntrials_per_bootstrap = ntry_boot,
+                             max_model_runtime = max(0.5,length(tree$tip.label)/ 5e4))
+    if (to_return == "fit"){
+      return(list(fit=f)) ## return just the fitted object
+    } else {
+      ntip <- length(tree$tip.label)
+      pdr_mle <- simulate_deterministic_hbd(LTT0=ntip, oldest_age=max_age, 
+                                            age_grid = f$age_grid, lambda0=f$fitted_rholambda0/rho,
+                                            mu=0, PDR=f$fitted_PDR, splines_degree = 1)
+      return(list(fit = f, pdr_mle = pdr_mle)) ## return both the fit and imputed pdr
+    }
+  } else { ## bootstrap the data
+    f_boot <- fit_hbd_pdr_on_grid(tree, age_grid = age_grid, age0=age0, Ntrials = ntry_fit,
+                                  min_PDR = -5, max_PDR=5, Nthreads = nthreads, condition = "crown",
+                                  Nbootstraps = nboot, Ntrials_per_bootstrap = ntry_boot,
+                                  max_model_runtime = max(0.5,length(tree$tip.label)/ 5e4))
+    if (to_return == "fit"){
+      return(list(fit=f_boot)) ## return just the fitted object
+    } else {
+      ntip <- length(tree$tip.label)
+      pdr_mle <- simulate_deterministic_hbd(LTT0=ntip, oldest_age=max_age, 
+                                            age_grid = f_boot$age_grid, lambda0=f_boot$fitted_rholambda0/rho,
+                                            mu=0, PDR=f_boot$fitted_PDR, splines_degree = 1)
+      pdr_lower <- simulate_deterministic_hbd(LTT0=ntip, oldest_age=max_age,
+                                              age_grid = f_boot$age_grid, lambda0=f_boot$CI95lower$rholambda0/rho,
+                                              mu=0, PDR=f_boot$CI95lower$PDR, splines_degree = 1)
+      pdr_upper <- simulate_deterministic_hbd(LTT0=ntip, oldest_age=max_age,
+                                              age_grid = f_boot$age_grid, lambda0=f_boot$CI95upper$rholambda0/rho,
+                                              mu=0, PDR=f_boot$CI95upper$PDR, splines_degree = 1)
+      ## return the fitted object, the imputed pdr and the imputed CIs
+      return(list(fit = f_boot, pdr_mle = pdr_mle, pdr_lower = pdr_lower, pdr_upper = pdr_upper)) 
+    }
+  } 
 }
+  
 
