@@ -70,7 +70,7 @@ for (i in 1:nrow(tree_info)){
                                  condition="crown",
                                  Ntrials=ntry_fit, Nthreads=nthreads,
                                  max_model_runtime = max(0.5,length(tree$tip.label)/ 5e4))
-    saveRDS(srm, paste0("output/vrm_fixed_lambda/", trim[j], "_", clade, ".rds"))
+    saveRDS(vmu, paste0("output/vrm_fixed_lambda/", trim[j], "_", clade, ".rds"))
     
     ## fit single rate models
     srm <- fit_hbd_model_on_grid(tree,
