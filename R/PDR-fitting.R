@@ -1,7 +1,6 @@
 ## PDR fitting fxns
 ## using AIC to minimize grid size
 ## using non-homogeneous grid size so density is higher closer to the present
-library(castor)
 
 fit_pdr_variable_grid <- function(tree, rho=1, starting_grid_size, age0=0,
                                   ntry_fit, ntry_search,
@@ -84,4 +83,13 @@ fit_pdr_variable_grid <- function(tree, rho=1, starting_grid_size, age0=0,
   } 
 }
   
+## Misc functions for running analyses
+
+## starting grid size function
+sgs_f <- function(tree)
+  1 + round(log(length(tree$tip.label)))
+
+## function for setting the maximum time
+maxt_f <- function(tree)
+  max(5,length(tree$tip.label)/ 5e4)
 

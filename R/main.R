@@ -46,6 +46,7 @@ for (i in 1:nrow(tree_info)){
   saveRDS(vrm, paste0("output/vrm/", clade, ".rds"))
   
   ## Fit constant rate birth death model
+  max_age <- get_tree_span(tree)$max_distance
   srm <- fit_hbd_model_on_grid(tree,
                                oldest_age = max_age,
                                age0=0,
