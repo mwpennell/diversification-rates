@@ -202,20 +202,6 @@ mu_df <- data.frame(taxa= taxa,
                     eps=eps_0,
                     rp_0=rp_0)
 
-## some summary stats for the paper
-## how many mu_p are negative
-
-## for age0
-## absolute numbers
-length(which(mu_df$mup < 0)) 
-## as a percentage
-length(which(mu_df$mup < 0)) / nrow(mu_df)
-
-## summary stats of rp[0]
-length(which(mu_df$rp_0 > 0))
-median(mu_df$rp_0)
-sd(mu_df$rp_0)
-
 mup_eps0(mu_df, cols)
 
 ggsave("figs/ms/epsilon_mup.pdf", width=6, height=6) ## need to fix dimensions
@@ -229,6 +215,9 @@ nrow(tree_info)
 
 ## Total number of taxa
 sum(tree_info$ntip_tree)
+
+## Minimum tree size
+min(tree_info$ntip_tree)
 
 ## How many have negative mu_p[0] (raw)
 length(which(mu_df$mup < 0)) 
