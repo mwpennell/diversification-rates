@@ -223,4 +223,42 @@ ggsave("figs/ms/epsilon_mup.pdf", width=6, height=6) ## need to fix dimensions
 
 
 
+## Calculate numbers for paper
+## Number of trees
+nrow(tree_info)
 
+## Total number of taxa
+sum(tree_info$ntip_tree)
+
+## How many have negative mu_p[0] (raw)
+length(which(mu_df$mup < 0)) 
+
+## How mnay have negative mu_p[0] (percentage)
+length(which(mu_df$mup < 0)) / nrow(mu_df)
+
+## How many have epsilon approximately = 0
+length(which(eps_0 < 0.01))
+## How many of these have negative mup?
+length(which(mu_df[which(mu_df$eps < 0.01), "mup"] < 0))
+## Pvalue from binomial test
+bt <- binom.test(n=length(which(eps_0 < 0.01)), 
+           x=length(which(mu_df[which(mu_df$eps < 0.01), "mup"] < 0)))
+bt$p.value
+
+## How many have epsilon approximately < 0.1
+length(which(eps_0 < 0.1))
+## How many of these have negative mup?
+length(which(mu_df[which(mu_df$eps < 0.1), "mup"] < 0))
+## Pvalue from binomial test
+bt <- binom.test(n=length(which(eps_0 < 0.1)), 
+                 x=length(which(mu_df[which(mu_df$eps < 0.1), "mup"] < 0)))
+bt$p.value
+
+## How many have epsilon approximately < 0.25
+length(which(eps_0 < 0.25))
+## How many of these have negative mup?
+length(which(mu_df[which(mu_df$eps < 0.25), "mup"] < 0))
+## Pvalue from binomial test
+bt <- binom.test(n=length(which(eps_0 < 0.25)), 
+                 x=length(which(mu_df[which(mu_df$eps < 0.25), "mup"] < 0)))
+bt$p.value
