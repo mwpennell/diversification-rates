@@ -28,7 +28,7 @@ ifelse(!dir.exists(file.path("output", "post")), dir.create(file.path("output", 
 
 ## Define variables for PDR fitting
 ntry_fit <- 10
-nthreads <- 2
+nthreads <- 5
 sample_size <- 10
 ntry_search <- 10
 
