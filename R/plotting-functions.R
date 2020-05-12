@@ -134,3 +134,9 @@ pdr_time_boot <- function(res, clade_name, cols){
           axis.text = element_text(size=6), plot.title = element_text(size=10))
 }
 
+
+
+## Function for examining variation in mu_p0 across posterior
+mu0p_post <- function(df){
+  ggplot(df, aes(x=clade, y=mup_0)) + geom_point()
+}

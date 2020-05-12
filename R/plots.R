@@ -208,6 +208,20 @@ ggsave("figs/ms/epsilon_mup.pdf", width=6, height=6) ## need to fix dimensions
 
 
 
+## FIGURE - variation in parameters across posteriors
+post_m <- read.csv("output/post/res-mammals.csv")
+post_b <- read.csv("output/post/res-birds.csv")
+post_a <- read.csv("output/post/res-amphibians.csv")
+post_q <- read.csv("output/post/res-squamates.csv")
+post_s <- read.csv("output/post/res-sharks.csv")
+
+post <- rbind(post_m, post_b)
+post <- rbind(post_a, post)
+post <- rbind(post_q, post)
+post <- rbind(post_s, post)
+
+
+
 
 ## Calculate numbers for paper
 ## Number of trees
@@ -218,6 +232,9 @@ sum(tree_info$ntip_tree)
 
 ## Minimum tree size
 min(tree_info$ntip_tree)
+
+## Maximum tree size
+max(tree_info$ntip_tree)
 
 ## How many have negative mu_p[0] (raw)
 length(which(mu_df$mup < 0)) 
