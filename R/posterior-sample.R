@@ -2,10 +2,6 @@
 
 ## Load in castor
 library(castor)
-## check version number
-pv <- as.numeric(gsub(".", "", packageVersion("castor"), fixed=TRUE))
-if (pv < 151)
-  stop("Update package 'castor' to at least '1.5.1'")
 
 ## load in functions for fitting PDR on grid
 source("R/PDR-fitting.R")

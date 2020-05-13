@@ -26,8 +26,100 @@ mega_phylo <- c("Mammals", "Birds", "Squamates", "Amphibians",
 tree_info <- read.csv("data/tree_descriptions.csv")
 
 
+## FIGURE - epsilon0 vs mup0
+taxa <- as.character(tree_info$taxon)
+rhos <- tree_info$rho
+
+mup_0 <- rep(NA, length=length(taxa))
+mup_0_low <- rep(NA, length=length(taxa))
+mup_0_upp <- rep(NA, length=length(taxa))
+eps_0 <- rep(NA, length=length(taxa))
+
+for (i in 1:length(taxa)){
+  
+  ## Pulled extinction - VRM model fits
+  file_id <- dir("output/vrm_ci/")[grep(taxa[i], dir("output/vrm_ci/"))]
+  tmp <- readRDS(paste0("output/vrm_ci/", file_id))
+  ## Pulled extinction from mle
+  mup_0[i] <- get_pulled_ext_mle(tmp, rhos[i])
+  ## Pulled extinction confidence interval
+  mup_0_ci <- get_pulled_ext_ci(tmp, rhos[i])
+  mup_0_low[i] <- mup_0_ci[1]
+  mup_0_upp[i] <- mup_0_ci[2]
+
+  ## Epsilon - SRM model fits
+  file_id <- dir("output/srm/")[grep(taxa[i], dir("output/srm/"))]
+  tmp <- readRDS(paste0("output/srm/", file_id))
+  eps_0[i] <- get_epsilon(tmp)
+}
+
+mu_df <- data.frame(taxa= taxa, 
+                    mup=mup_0,
+                    mup_low = mup_0_low,
+                    mup_upp = mup_0_upp,
+                    eps=eps_0,
+                    rp_0=rp_0)
+
+mup_eps0(mu_df, cols)
+
+ggsave("figs/ms/epsilon_mup.pdf", width=6, height=6) ## need to fix dimensions
+
+mup_eps0_error(mu_df, cols)
+
+ggsave("figs/ms/epsilon_mup_error.pdf", width=6, height=6)
+
+
+## Calculate numbers for paper
+## Number of trees
+nrow(tree_info)
+
+## Total number of taxa
+sum(tree_info$ntip_tree)
+
+## Minimum tree size
+min(tree_info$ntip_tree)
+
+## Maximum tree size
+max(tree_info$ntip_tree)
+
+## How many have negative mu_p[0] (raw)
+length(which(mu_df$mup < 0)) 
+
+## How mnay have negative mu_p[0] (percentage)
+length(which(mu_df$mup < 0)) / nrow(mu_df)
+
+## How many have epsilon approximately = 0
+length(which(eps_0 < 0.01))
+## How many of these have negative mup?
+length(which(mu_df[which(mu_df$eps < 0.01), "mup"] < 0))
+## Pvalue from binomial test
+bt <- binom.test(n=length(which(eps_0 < 0.01)), 
+                 x=length(which(mu_df[which(mu_df$eps < 0.01), "mup"] < 0)))
+bt$p.value
+
+## How many have epsilon approximately < 0.1
+length(which(eps_0 < 0.1))
+## How many of these have negative mup?
+length(which(mu_df[which(mu_df$eps < 0.1), "mup"] < 0))
+## Pvalue from binomial test
+bt <- binom.test(n=length(which(eps_0 < 0.1)), 
+                 x=length(which(mu_df[which(mu_df$eps < 0.1), "mup"] < 0)))
+bt$p.value
+
+## How many have epsilon approximately < 0.25
+length(which(eps_0 < 0.25))
+## How many of these have negative mup?
+length(which(mu_df[which(mu_df$eps < 0.25), "mup"] < 0))
+## Pvalue from binomial test
+bt <- binom.test(n=length(which(eps_0 < 0.25)), 
+                 x=length(which(mu_df[which(mu_df$eps < 0.25), "mup"] < 0)))
+bt$p.value
+
+
+
+## Now we need all the datasets at once
 ## Read in and trim output
-d_vrm_boot <- "output/vrm/"
+d_vrm_boot <- "output/vrm_ci/"
 
 ## Megaphylogenies
 mega_id <- dir(d_vrm_boot)[sapply(mega_phylo, function(x) grep(x, dir(d_vrm_boot)))]
@@ -39,8 +131,6 @@ for (i in 1:length(mega_id)){
 
 names(vrm_tt) <- mega_phylo
 
-
-vrm_tt <- lapply(vrm_tt, function(x) trim_sims(x))
 
 ## All the other trees 
 hd_id <- dir(d_vrm_boot)[-which(dir(d_vrm_boot) %in% mega_id)]
@@ -54,24 +144,46 @@ for (i in 1:length(hd_id)){
 
 names(vrm_tt_supp) <- clade_names_supp
 
-vrm_tt_supp <- lapply(vrm_tt_supp, function(x) trim_sims(x))
-
 
 
 ## Get list of megaphylogenies for separate plotting
 tree_info_mega <- tree_info[which(tree_info$taxon %in% mega_phylo), ]
 tree_list_mega <- as.character(tree_info_mega$tree_name)
 names(tree_list_mega) <- as.character(tree_info_mega$taxon)
+rho_mega <- as.numeric(tree_info_mega$rho)
+names(rho_mega) <- as.character(tree_info_mega$taxon)
 ## reorder
 tree_list_mega <- tree_list_mega[mega_phylo]
+rho_mega <- rho_mega[mega_phylo]
+
 
 ## Get list of Henao Diaz trees for separate plotting
 tree_info_hd <- tree_info[-which(tree_info$taxon %in% mega_phylo), ]
 tree_list_hd <- as.character(tree_info_hd$tree_name)
 names(tree_list_hd) <- as.character(tree_info_hd$taxon)
+rho_hd <- as.numeric(tree_info_hd$rho)
+names(rho_hd) <- as.character(tree_info_hd$taxon)
 ## reorder
 tree_list_hd <- tree_list_hd[clade_names_supp]
+rho_hd <- rho_hd[clade_names_supp]
 
+
+## Simulate the rest of the PDR trajectory and then trim it away
+vrm_tt <- lapply(mega_phylo, function(x) {
+  tre <- read_tree(file=paste0("data/trees/", tree_list_mega[x], ".tre"))
+  rho <- rho_mega[x]
+  sim_hbd(vrm_tt[[x]], rho, tre)
+  }
+)
+names(vrm_tt) <- mega_phylo
+
+vrm_tt_supp <- lapply(clade_names_supp, function(x) {
+  tre <- read_tree(file=paste0("data/trees/", tree_list_hd[x], ".tre"))
+  rho <- rho_hd[x]
+  sim_hbd(vrm_tt_supp[[x]], rho, tre)
+  }
+)
+names(vrm_tt_supp) <- clade_names_supp
 
 
 ## FIGURE - ltt vs dltt - macro only
@@ -86,6 +198,7 @@ ggarrange(figs_lm[[1]], figs_lm[[2]], figs_lm[[3]],
           ncol=3, nrow=3)
 
 ggsave("figs/ms/ltt_megaphylo.pdf", width=7.5, height=6) 
+
 
 
 
@@ -176,39 +289,11 @@ rm(vrm_tt_supp)
 
 
 
-## FIGURE - epsilon0 vs mup0
-taxa <- as.character(tree_info$taxon)
-rhos <- tree_info$rho
-
-mup_0 <- rep(NA, length=length(taxa))
-eps_0 <- rep(NA, length=length(taxa))
-## Estimate rp[0] just for additional info
-rp_0 <- rep(NA, length=length(taxa))
-
-for (i in 1:length(taxa)){
-  file_id <- dir("output/vrm/")[grep(taxa[i], dir("output/vrm/"))]
-  tmp <- readRDS(paste0("output/vrm/", file_id))
-  mup_0[i] <- get_pulled_ext(tmp, rhos[i], "mle")
-  rp_0[i] <- tmp$fit$fitted_PDR[1]
-  file_id <- dir("output/srm/")[grep(taxa[i], dir("output/srm/"))]
-  tmp <- readRDS(paste0("output/srm/", file_id))
-  if (tmp$success == TRUE){
-    eps_0[i] <- get_epsilon(tmp)
-  }
-}
-
-mu_df <- data.frame(taxa= taxa, 
-                    mup=mup_0,
-                    eps=eps_0,
-                    rp_0=rp_0)
-
-mup_eps0(mu_df, cols)
-
-ggsave("figs/ms/epsilon_mup.pdf", width=6, height=6) ## need to fix dimensions
 
 
 
 ## FIGURE - variation in parameters across posteriors
+## Read in summary table from posterior distribution analyses
 post_m <- read.csv("output/post/res-mammals.csv")
 post_b <- read.csv("output/post/res-birds.csv")
 post_a <- read.csv("output/post/res-amphibians.csv")
@@ -220,51 +305,9 @@ post <- rbind(post_a, post)
 post <- rbind(post_q, post)
 post <- rbind(post_s, post)
 
+mu0p_post(post, cols)
+
+ggsave("figs/ms/post-var.pdf", width=6, height=6)
 
 
 
-## Calculate numbers for paper
-## Number of trees
-nrow(tree_info)
-
-## Total number of taxa
-sum(tree_info$ntip_tree)
-
-## Minimum tree size
-min(tree_info$ntip_tree)
-
-## Maximum tree size
-max(tree_info$ntip_tree)
-
-## How many have negative mu_p[0] (raw)
-length(which(mu_df$mup < 0)) 
-
-## How mnay have negative mu_p[0] (percentage)
-length(which(mu_df$mup < 0)) / nrow(mu_df)
-
-## How many have epsilon approximately = 0
-length(which(eps_0 < 0.01))
-## How many of these have negative mup?
-length(which(mu_df[which(mu_df$eps < 0.01), "mup"] < 0))
-## Pvalue from binomial test
-bt <- binom.test(n=length(which(eps_0 < 0.01)), 
-           x=length(which(mu_df[which(mu_df$eps < 0.01), "mup"] < 0)))
-bt$p.value
-
-## How many have epsilon approximately < 0.1
-length(which(eps_0 < 0.1))
-## How many of these have negative mup?
-length(which(mu_df[which(mu_df$eps < 0.1), "mup"] < 0))
-## Pvalue from binomial test
-bt <- binom.test(n=length(which(eps_0 < 0.1)), 
-                 x=length(which(mu_df[which(mu_df$eps < 0.1), "mup"] < 0)))
-bt$p.value
-
-## How many have epsilon approximately < 0.25
-length(which(eps_0 < 0.25))
-## How many of these have negative mup?
-length(which(mu_df[which(mu_df$eps < 0.25), "mup"] < 0))
-## Pvalue from binomial test
-bt <- binom.test(n=length(which(eps_0 < 0.25)), 
-                 x=length(which(mu_df[which(mu_df$eps < 0.25), "mup"] < 0)))
-bt$p.value
