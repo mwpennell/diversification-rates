@@ -2,13 +2,16 @@
 
 ## Load in castor
 library(castor)
+pv <- as.numeric(gsub(".", "", packageVersion("castor"), fixed=TRUE))
+if (pv < 158)
+  stop("Update package 'castor' to at least '1.5.8'")
 
 ## load in functions for fitting PDR on grid
 source("R/PDR-fitting.R")
 
 ## Make directories for output
-## for "vrm" - Variable rates model
-ifelse(!dir.exists(file.path("output", "vrm")), dir.create(file.path("output", "vrm")), FALSE)
+## for "vrm" - Variable rates model with confidence intervals
+ifelse(!dir.exists(file.path("output", "vrm_ci")), dir.create(file.path("output", "vrm_ci")), FALSE)
 ## for "srm" - Single rates model
 ifelse(!dir.exists(file.path("output", "srm")), dir.create(file.path("output", "srm")), FALSE)
 
@@ -17,7 +20,7 @@ tree_info <- read.csv("data/tree_descriptions.csv")
 
 ## Define variables for PDR fitting
 ntry_fit <- 10
-nthreads <- 10
+nthreads <- parallel::detectCores() - 2
 nboot <- 100 
 ntry_boot <- 2 
 ntry_search <- 10
@@ -39,7 +42,7 @@ for (i in 1:nrow(tree_info)){
                                 ntry_fit=ntry_fit, ntry_search=ntry_search,
                                 nboot=nboot, ntry_boot=ntry_boot, nthreads=nthreads,
                                 max_time = maxt)
-  saveRDS(vrm, paste0("output/vrm/", clade, ".rds"))
+  saveRDS(vrm, paste0("output/vrm_ci/", clade, ".rds"))
   
   ## Fit constant rate birth death model
   max_age <- get_tree_span(tree)$max_distance
