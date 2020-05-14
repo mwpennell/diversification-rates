@@ -47,7 +47,7 @@ fit_pdr_variable_grid <- function(tree, rho=1, starting_grid_size, age0=0,
   
   fit_hbd_pdr_on_grid(tree, age_grid = age_grid, age0=age0, Ntrials = ntry_fit,
                              min_PDR = -5, max_PDR=5, Nthreads = nthreads, condition = "crown",
-                             Nbootstraps = 0, Ntrials_per_bootstrap = ntry_boot,
+                             Nbootstraps = nboot, Ntrials_per_bootstrap = ntry_boot,
                              max_model_runtime = max_time)
 
 }
