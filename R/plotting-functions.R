@@ -144,7 +144,7 @@ get_epsilon <- function(f){
 mup_eps0 <- function(mu_df, cols){
   ggplot(mu_df, aes(x=mup, y=eps)) + 
     geom_point(colour=cols[1], size=3, alpha=0.6) +
-    theme_cowplot() + xlab(expression(mu[p](0))) + 
+    theme_cowplot() + xlab(expression(mu[p](0)~"(Myr"^"-1"~")")) + 
     ylab(expression(epsilon[o]~"*")) + 
     geom_vline(xintercept=0, colour=cols[2],linetype='dashed') + 
     geom_hline(yintercept=0, colour=cols[2],linetype='dashed') +
@@ -158,7 +158,7 @@ mup_eps0_error <- function(mu_df, cols){
   ggplot(mu_df, aes(x=mup, y=eps)) + 
     geom_point(colour=cols[1], size=3, alpha=0.6) +
     geom_linerange(colour=cols[1], alpha=0.6, aes(xmin = mup_low, xmax = mup_upp)) +
-    theme_cowplot() + xlab(expression(mu[p](0))) + 
+    theme_cowplot() + xlab(expression(mu[p](0)~"(Myr"^"-1"~")")) + 
     ylab(expression(epsilon[o]~"*")) + 
     geom_vline(xintercept=0, colour=cols[2],linetype='dashed') + 
     geom_hline(yintercept=0, colour=cols[2],linetype='dashed') +
