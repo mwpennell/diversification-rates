@@ -187,6 +187,13 @@ pdr_time_boot <- function(res, clade_name, cols){
 mu0p_post <- function(df, cols){
   ggplot(df, aes(x=clade, y=mup_0)) + 
     geom_point(colour=cols[1]) +
-    xlab("Clade") + ylab(expression(mu[p](0))) + 
+    xlab("Clade") + ylab(expression(mu[p](0)~"(Myr"^"-1"~")")) + 
+    theme_cowplot() + theme(axis.text.x=element_text(angle=45, hjust = 1))
+}
+
+eps_post <- function(df, cols){
+  ggplot(df, aes(x=clade, y=eps_0)) + 
+    geom_point(colour=cols[1]) +
+    xlab("Clade") + ylab(expression(epsilon[o]~"*")) + 
     theme_cowplot() + theme(axis.text.x=element_text(angle=45, hjust = 1))
 }

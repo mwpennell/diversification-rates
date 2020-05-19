@@ -57,8 +57,7 @@ mu_df <- data.frame(taxa= taxa,
                     mup=mup_0,
                     mup_low = mup_0_low,
                     mup_upp = mup_0_upp,
-                    eps=eps_0,
-                    rp_0=rp_0)
+                    eps=eps_0)
 
 mup_eps0(mu_df, cols)
 
@@ -299,6 +298,8 @@ post_b <- read.csv("output/post/res-birds.csv")
 post_a <- read.csv("output/post/res-amphibians.csv")
 post_q <- read.csv("output/post/res-squamates.csv")
 post_s <- read.csv("output/post/res-sharks.csv")
+## switch name
+post_s$clade <- rep("Chondrichthyans", 10)
 
 post <- rbind(post_m, post_b)
 post <- rbind(post_a, post)
@@ -307,7 +308,20 @@ post <- rbind(post_s, post)
 
 mu0p_post(post, cols)
 
-ggsave("figs/ms/post-var.pdf", width=6, height=6)
+ggsave("figs/ms/post-var-mu0p.pdf", width=6, height=6)
 
+eps_post(post, cols)
 
+ggsave("figs/ms/post-var-eps.pdf", width=6, height=6)
 
+## Measuring variation
+sd(post_m$mup_0)
+sd(post_m$eps_0)
+sd(post_b$mup_0)
+sd(post_b$eps_0)
+sd(post_a$mup_0)
+sd(post_a$eps_0)
+sd(post_q$mup_0)
+sd(post_q$eps_0)
+sd(post_s$mup_0)
+sd(post_s$eps_0)
